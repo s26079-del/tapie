@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PhotoLink - 여행 스냅 사진 플랫폼</title>
+    <style>
+        /* --- Global Styles --- */
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            margin: 0;
+            color: #333;
+            background-color: #f4f7f6;
+        }
+        body.modal-open { overflow: hidden; }
+        .container { max-width: 1100px; margin: 0 auto; padding: 0 20px; }
+
+        /* --- Header & Navigation --- */
+        .header {
+            background-color: rgba(255, 255, 255, 0.9);
+            padding: 15px 0;
+            position: fixed;
+            width: 100%;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            backdrop-filter: blur(5px);
+        }
+        .nav { display: flex; justify-content: space-between; align-items: center; }
+        .logo { font-size: 24px; font-weight: bold; color: #007bff; }
+        .nav-links a { text-decoration: none; color: #555; margin-left: 25px; font-weight: 500; cursor: pointer; }
+
+        /* --- Hero Section --- */
+        .hero {
+            background-image: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url('https://images.pexels.com/photos/373912/pexels-photo-373912.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1');
+            background-size: cover;
+            background-position: center;
+            color: white;
+            text-align: center;
+            padding: 180px 20px 120px;
+        }
+        .hero h1 { font-size: 48px; margin-bottom: 10px; }
+        .hero p { font-size: 20px; margin-bottom: 30px; }
+        .btn {
+            background-color: #007bff;
+            color: white;
+            padding: 12px 25px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 5px;
+            text-decoration: none;
+            transition: background-color 0.3s;
+        }
+        .btn:hover { background-color: #0056b3; }
+        .btn-secondary { background-color: transparent; border: 2px solid white; }
+        .btn-secondary:hover { background-color: white; color: #333; }
+
+        /* --- Content Sections --- */
+        .content-section { display: none; padding: 80px 0; }
+        .content-section h2 { text-align: center; font-size: 36px; margin-bottom: 50px; }
+
+        /* --- Profile & Booking Cards --- */
+        .card {
+            border: 1px solid #eee;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            background: #fff;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        }
+        .profile-card {
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .profile-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+        }
+        .card img {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin-right: 20px;
+            flex-shrink: 0;
+        }
+        .card .info { flex-grow: 1; }
+        .card h3 { margin: 0 0 5px; }
+        .card p { margin: 4px 0; color: #555; }
+        .booking-card { position: relative; }
+        .booking-card .info h3 { font-size: 20px; }
+        .booking-card .info p { font-size: 16px; }
+        .cancel-btn {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background-color: #dc3545;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            padding: 5px 10px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+        .cancel-btn:hover { background-color: #c82333; }
+
+
+        /* --- Form Container --- */
+        .form-container {
+            background: white;
+            padding: 40px;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        .form-group { margin-bottom: 20px; }
+        .form-group label { display: block; margin-bottom: 8px; font-weight: 500; }
+        .form-group input, .form-group textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+            box-sizing: border-box;
+        }
+        .form-group textarea { resize: vertical; min-height: 120px; }
+
+        /* --- Modal Styles --- */
+        .modal-backdrop {
+            display: none;
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background-color: rgba(0, 0, 0, 0.6);
+            z-index: 200;
+            justify-content: center;
+            align-items: center;
+        }
+        .modal-content {
+            background-color: white;
+            padding: 30px;
+            border-radius: 8px;
+            max-width: 600px;
+            width: 90%;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+            position: relative;
+        }
+        .modal-close {
+            position: absolute;
+            top: 15px; right: 15px;
+            font-size: 28px;
+            font-weight: bold;
+            color: #aaa;
+            cursor: pointer;
+        }
+        .modal-close:hover { color: #333; }
+        .modal-content button { width: 100%; margin-top: 20px; }
+
+        /* --- Footer --- */
+        .footer { background-color: #333; color: white; text-align: center; padding: 20px 0; }
+    </style>
+</head>
+<body>
+
+    <header class="header">
+        <div class="container nav">
+            <div class="logo">PhotoLink</div>
+            <nav class="nav-links">
+                <a onclick="showSection('profiles', event)">작가 찾아보기</a>
+                <a onclick="showSection('bookings', event)">예약 목록</a>
+            </nav>
+        </div>
+    </header>
+
+    <main>
+        <section class="hero">
+            <h1>여행의 순간을 인생 사진으로</h1>
+            <p>현지 전문 사진작가와 함께하는 특별한 여행을 경험하세요.</p>
+            <div>
+                <a href="#" class="btn" onclick="showSection('profiles', event)">작가 찾아보기</a>
+                <a href="#" class="btn btn-secondary" onclick="showSection('registration', event)">작가로 등록하기</a>
+            </div>
+        </section>
+
+        <section id="profiles" class="content-section">
+            <div class="container">
+                <h2>나와 어울리는 작가를 찾아보세요</h2>
+                <div id="profile-list"></div>
+            </div>
+        </section>
+
+        <section id="bookings" class="content-section">
+            <div class="container">
+                <h2>나의 예약 내역</h2>
+                <div id="booking-list">
+                    <p id="no-bookings-msg">아직 예약 내역이 없습니다.</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="registration" class="content-section">
+            <div class="container">
+                <div class="form-container">
+                    <h2>작가 등록하기</h2>
+                    <form id="registration-form">
+                        <div class="form-group">
+                            <label for="name">이름</label>
+                            <input type="text" id="name" name="name" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="cost">비용 (시간당)</label>
+                            <input type="text" id="cost" name="cost" placeholder="예: 50,000원" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="career">주요 경력 및 소개</label>
+                            <textarea id="career" name="career" required></textarea>
+                        </div>
+                        <button type="submit" class="btn" style="width: 100%;">등록 신청</button>
+                    </form>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="footer">
+        <p>&copy; 2025 PhotoLink. All Rights Reserved.</p>
+    </footer>
+
+    <!-- Modals -->
+    <div id="profileModal" class="modal-backdrop">
+        <div class="modal-content">
+            <span class="modal-close" onclick="closeModal()">&times;</span>
+            <h2 id="modal-name"></h2>
+            <p id="modal-cost" style="font-weight: bold; color: #007bff;"></p>
+            <p id="modal-career"></p>
+            <button class="btn" onclick="openBookingModal()">예약하기</button>
+        </div>
+    </div>
+
+    <div id="bookingModal" class="modal-backdrop">
+        <div class="modal-content">
+            <span class="modal-close" onclick="closeBookingModal()">&times;</span>
+            <h2>작가 예약하기</h2>
+            <form id="booking-form">
+                <div class="form-group">
+                    <label for="booker-name">예약자 이름</label>
+                    <input type="text" id="booker-name" required>
+                </div>
+                <div class="form-group">
+                    <label for="photographer-name">작가 이름</label>
+                    <input type="text" id="photographer-name" disabled style="background-color: #e9ecef;">
+                </div>
+                <div class="form-group">
+                    <label for="booking-hours">예약 시간</label>
+                    <input type="number" id="booking-hours" min="1" placeholder="숫자만 입력 (시간 단위)" required>
+                </div>
+                <button type="submit" class="btn" style="width: 100%;">예약 완료</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // --- State Management ---
+        let currentPhotographer = null;
+
+        document.addEventListener('DOMContentLoaded', function() {
+            renderPhotographers();
+            renderBookings();
+            document.getElementById('registration-form').addEventListener('submit', handleRegistration);
+            document.getElementById('booking-form').addEventListener('submit', handleBooking);
+            document.getElementById('profileModal').addEventListener('click', function(e) { if (e.target === this) closeModal(); });
+            document.getElementById('bookingModal').addEventListener('click', function(e) { if (e.target === this) closeBookingModal(); });
+        });
+
+        // --- Data Storage Functions ---
+        function getStoredData(key) { return JSON.parse(localStorage.getItem(key)) || []; }
+        function setStoredData(key, data) { localStorage.setItem(key, JSON.stringify(data)); }
+
+        // --- Rendering Functions ---
+        function renderPhotographers() {
+            const photographers = getStoredData('photographers');
+            const listElement = document.getElementById('profile-list');
+            listElement.innerHTML = ''; 
+
+            if (photographers.length === 0) {
+                photographers.push(
+                    { id: 1, name: '김작가 (대한민국)', cost: '100,000원', career: '서울의 숨겨진 명소에서 인생 사진을 남겨드립니다.', imgSrc: 'https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg?auto=compress&cs=tinysrgb&dpr=1&w=500' },
+                    { id: 2, name: 'Jane Doe (USA)', cost: '$80', career: 'I will capture your natural moments in the city.', imgSrc: 'https://images.pexels.com/photos/415829/pexels-photo-415829.jpeg?auto=compress&cs=tinysrgb&dpr=1&w=500' }
+                );
+                setStoredData('photographers', photographers);
+            }
+
+            photographers.forEach(p => {
+                const card = document.createElement('div');
+                card.className = 'card profile-card';
+                card.onclick = () => openModal(p);
+                card.innerHTML = `
+                    <img src="${p.imgSrc}" alt="${p.name} 프로필 사진">
+                    <div class="info">
+                        <h3>${p.name}</h3>
+                        <p class="cost"><strong>비용:</strong> ${p.cost} / 시간</p>
+                        <p class="career-summary">${p.career}</p>
+                    </div>`;
+                listElement.appendChild(card);
+            });
+        }
+
+        function renderBookings() {
+            const bookings = getStoredData('bookings');
+            const listElement = document.getElementById('booking-list');
+            const noBookingsMsg = document.getElementById('no-bookings-msg');
+            
+            while (listElement.firstChild && listElement.firstChild !== noBookingsMsg) {
+                listElement.removeChild(listElement.firstChild);
+            }
+
+            if (bookings.length === 0) {
+                noBookingsMsg.style.display = 'block';
+            } else {
+                noBookingsMsg.style.display = 'none';
+                bookings.forEach(b => {
+                    const card = document.createElement('div');
+                    card.className = 'card booking-card';
+                    card.innerHTML = `
+                        <img src="${b.photographerImgSrc}" alt="${b.photographerName} 프로필 사진">
+                        <div class="info">
+                            <h3>${b.photographerName} 작가님과의 예약</h3>
+                            <p><strong>예약자:</strong> ${b.bookerName}</p>
+                            <p><strong>예약 시간:</strong> ${b.hours}시간</p>
+                        </div>
+                        <button class="delete-btn" onclick="deleteBooking(${b.id})">삭제</button>`;
+                    listElement.appendChild(card);
+                });
+            }
+        }
+
+        // --- Event Handlers ---
+        function handleRegistration(event) {
+            event.preventDefault();
+            const form = event.target;
+            const name = form.name.value.trim();
+            const cost = form.cost.value.trim();
+            const career = form.career.value.trim();
+
+            if (!name || !cost || !career) return alert('모든 필드를 입력해주세요.');
+
+            const photographers = getStoredData('photographers');
+            photographers.push({ id: Date.now(), name, cost, career, imgSrc: 'https://images.pexels.com/photos/1043471/pexels-photo-1043471.jpeg?auto=compress&cs=tinysrgb&w=500' });
+            setStoredData('photographers', photographers);
+            
+            renderPhotographers();
+            form.reset();
+            showSection('profiles');
+        }
+
+        function handleBooking(event) {
+            event.preventDefault();
+            if (!currentPhotographer) return;
+
+            const form = event.target;
+            const bookerName = form['booker-name'].value.trim();
+            const hours = form['booking-hours'].value;
+
+            if (!bookerName || !hours) return alert('예약자 이름과 시간을 입력해주세요.');
+
+            const bookings = getStoredData('bookings');
+            bookings.push({
+                id: Date.now(), // Add unique ID to booking
+                bookerName,
+                hours,
+                photographerName: currentPhotographer.name,
+                photographerImgSrc: currentPhotographer.imgSrc
+            });
+            setStoredData('bookings', bookings);
+
+            renderBookings();
+            alert('예약이 완료되었습니다.');
+            form.reset();
+            closeBookingModal();
+            showSection('bookings');
+        }
+
+        function deleteBooking(bookingId) {
+            if (!confirm('정말로 이 예약을 삭제하시겠습니까?')) return;
+
+            let bookings = getStoredData('bookings');
+            bookings = bookings.filter(b => b.id !== bookingId);
+            setStoredData('bookings', bookings);
+            renderBookings();
+        }
+
+        // --- Modal Controls ---
+        function openModal(photographer) {
+            currentPhotographer = photographer;
+            document.getElementById('modal-name').innerText = photographer.name;
+            document.getElementById('modal-career').innerText = photographer.career;
+            document.getElementById('modal-cost').innerText = `비용: ${photographer.cost} / 시간`;
+            document.getElementById('profileModal').style.display = 'flex';
+            document.body.classList.add('modal-open');
+        }
+
+        function closeModal() {
+            document.getElementById('profileModal').style.display = 'none';
+            if (document.getElementById('bookingModal').style.display === 'none') {
+                document.body.classList.remove('modal-open');
+            }
+        }
+
+        function openBookingModal() {
+            if (!currentPhotographer) return;
+            document.getElementById('photographer-name').value = currentPhotographer.name;
+            closeModal();
+            document.getElementById('bookingModal').style.display = 'flex';
+            document.body.classList.add('modal-open');
+        }
+
+        function closeBookingModal() {
+            document.getElementById('bookingModal').style.display = 'none';
+            document.body.classList.remove('modal-open');
+        }
+
+        // --- Section Toggling ---
+        function showSection(sectionId, event) {
+            if (event) event.preventDefault();
+            
+            document.querySelectorAll('.content-section').forEach(section => {
+                section.style.display = 'none';
+            });
+            
+            const element = document.getElementById(sectionId);
+            if (element) {
+                element.style.display = 'block';
+                if (sectionId !== 'hero') {
+                    element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+            }
+        }
+    </script>
+
+</body>
+</html>
